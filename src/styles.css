@@ -1,0 +1,18 @@
+@font-face {
+  font-family: "Typewriter";
+  src: url("./typewcond_regular.otf");
+}
+
+#textDiv {
+  position: -webkit-sticky;
+  display: table;
+  position: absolute;
+  top: 0;
+  justify-content: center;
+  align-items: center;
+  font-family: Typewriter;
+  font-size: 32px;
+  text-align: center;
+  color: black;
+  background-color: yellow;
+}
