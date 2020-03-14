@@ -62,19 +62,21 @@ document.body.appendChild(view);
     viewport = new Viewport({
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
-      // worldWidth: 200 * 20 * 1.02,
-      // worldHeight: 100 * 25 * 1.05,
-      worldWidth: json.length,
-      worldHeight: json.length,
+      worldWidth: 5000,
+      worldHeight: 5000,
+      // worldWidth: json.length,
+      // worldHeight: json.length,
       interaction: app.renderer.plugins.interaction
     });
     viewport.moveCorner(0, 0);
     viewport.fitWidth(window.innerWidth);
 
-    viewport.drag().pinch();
-    // .bounce();
-    // .clamp({ direction: "all" });
-    // .wheel();
+    viewport
+      .drag()
+      .pinch()
+      // .bounce();
+      // .clamp({ direction: "all" });
+      .wheel();
     // .decelerate();
 
     // viewport.moveCorner(100, -100);
@@ -96,25 +98,25 @@ document.body.appendChild(view);
   // PIXI.utils.clearTextureCache();
   // loader.add(["shaders/backgroundFrag.glsl"]).load(init);
 
-  function initBackground() {
-    let background = new PIXI.Sprite();
-    background.width = width;
-    background.height = height;
+  // function initBackground() {
+  //   let background = new PIXI.Sprite();
+  //   background.width = width;
+  //   background.height = height;
 
-    // // load frag shader
-    // const backgroundFragShader = resources["shaders/backgroundFrag.glsl"].data;
+  //   // load frag shader
+  //   const backgroundFragShader = resources["shaders/backgroundFrag.glsl"].data;
 
-    // // create a filter using the frag shader. no vertex shader, so 'undefined'
-    // const backgroundFilter = new PIXI.Filter(
-    //   undefined,
-    //   backgroundFragShader,
-    //   uniforms
-    // );
-    // assign the filter to the background sprite
-    // background.filters = [backgroundFilter];
+  //   // create a filter using the frag shader. no vertex shader, so 'undefined'
+  //   const backgroundFilter = new PIXI.Filter(
+  //     undefined,
+  //     backgroundFragShader,
+  //     uniforms
+  //   );
+  //   // assign the filter to the background sprite
+  //   background.filters = [backgroundFilter];
 
-    app.stage.addChild(background);
-  }
+  //   app.stage.addChild(background);
+  // }
 
   function initEvents() {
     app.stage.interactive = true;
@@ -190,9 +192,9 @@ document.body.appendChild(view);
         imgSprite.interactive = true;
 
         imgSprite.on("mouseover", () => {
-          imgSprite.width *= imgSprite.width * 1.2;
+          imgSprite.width = imgSprite.width * 1.2;
           imgSprite.height = imgSprite.height * 1.2;
-          imgSprite.zIndex += 10000;
+          imgSprite.zIndex += 100;
           SpeakText(caption);
           typeText(caption);
         });
@@ -200,7 +202,7 @@ document.body.appendChild(view);
         imgSprite.on("mouseout", () => {
           imgSprite.width = imgSprite.width / 1.2;
           imgSprite.height = imgSprite.height / 1.2;
-          imgSprite.zIndex -= 10000;
+          imgSprite.zIndex -= 100;
           speechSynthesis.cancel();
           clearText();
         });
@@ -208,6 +210,15 @@ document.body.appendChild(view);
       }
     });
   }
+
+  setInterval(() => {
+    let index = Math.floor(Math.random() * json.length);
+    let currentCaption = json[index].caption;
+    let currentImage = json[index].filename;
+    console.log(currentImage, currentCaption);
+    SpeakText(currentCaption);
+    typeText(currentCaption);
+  }, 7000);
 
   function init() {
     initDimensions();
@@ -217,7 +228,6 @@ document.body.appendChild(view);
     initEvents();
     // initContainer();
     loadImgs();
-
     app.ticker.add(() => {
       // Multiply the values by a coefficient to get a smooth animation
       uniforms.uPointerDown +=
@@ -231,30 +241,30 @@ document.body.appendChild(view);
   }
 
   // // Clean the current Application
-  function clean() {
-    // Stop the current animation
-    app.ticker.stop();
+  // function clean() {
+  //   // Stop the current animation
+  //   app.ticker.stop();
 
-    // Remove event listeners
-    app.stage
-      .off("pointerdown", onPointerDown)
-      .off("pointerup", onPointerUp)
-      .off("pointerupoutside", onPointerUp)
-      .off("pointermove", onPointerMove);
-  }
+  //   // Remove event listeners
+  //   app.stage
+  //     .off("pointerdown", onPointerDown)
+  //     .off("pointerup", onPointerUp)
+  //     .off("pointerupoutside", onPointerUp)
+  //     .off("pointermove", onPointerMove);
+  // }
 
   // On resize, reinit the app (clean and init)
   // But first debounce the calls, so we don't call init too often
-  let resizeTimer;
-  function onResize() {
-    if (resizeTimer) clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      clean();
-      init();
-    }, 200);
-  }
-  // Listen to resize event
-  window.addEventListener("resize", onResize);
+  // let resizeTimer;
+  // function onResize() {
+  //   if (resizeTimer) clearTimeout(resizeTimer);
+  //   resizeTimer = setTimeout(() => {
+  //     clean();
+  //     init();
+  //   }, 200);
+  // }
+  // // Listen to resize event
+  // window.addEventListener("resize", onResize);
 
   init();
 })();
