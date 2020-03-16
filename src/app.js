@@ -59,27 +59,27 @@ document.body.appendChild(view);
     app = new PIXI.Application({ view });
 
     // resize the renderer view in css pixels to allow for resolutions other than 1
-    app.renderer.autoDensity = true;
+    // app.renderer.autoDensity = true;
 
     app.renderer.resize(width, height);
 
     viewport = new Viewport({
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
-      worldWidth: 5000,
-      worldHeight: 5000,
+      worldWidth: 2000,
+      worldHeight: 2000,
       // worldWidth: json.length,
       // worldHeight: json.length,
       interaction: app.renderer.plugins.interaction
     });
     viewport.moveCorner(0, 0);
-    viewport.fitWidth(window.innerWidth);
+    // viewport.fitWidth(window.innerWidth);
 
     viewport
       .drag()
       .pinch()
       // .bounce();
-      // .clamp({ direction: "all" });
+      // .clamp({ direction: "all" })
       .wheel();
     // .decelerate();
 
@@ -87,13 +87,13 @@ document.body.appendChild(view);
 
     // load resources and then init the app
     // set the distortion filter for the entire stage
-    const stageFragmentShader = resources["shaders/stageFrag.glsl"].data;
-    const stageFilter = new PIXI.Filter(
-      undefined,
-      stageFragmentShader,
-      uniforms
-    );
-    app.stage.filters = [stageFilter];
+    // const stageFragmentShader = resources["shaders/stageFrag.glsl"].data;
+    // const stageFilter = new PIXI.Filter(
+    //   undefined,
+    //   stageFragmentShader,
+    //   uniforms
+    // );
+    // app.stage.filters = [stageFilter];
     app.stage.addChild(viewport);
   }
 
@@ -172,6 +172,7 @@ document.body.appendChild(view);
   //   app.stage.addChild(container);
   // }
 
+  let imgSprites = [];
   function loadImgs() {
     let displayImg;
     for (let i = 0; i < json.length; i++) {
@@ -182,7 +183,6 @@ document.body.appendChild(view);
       app.loader.add(json[i].caption, displayImg);
       json[i].image = displayImg;
     }
-
     app.loader.load((loader, resources) => {
       for (let key in json) {
         const caption = json[key].caption;
@@ -195,39 +195,44 @@ document.body.appendChild(view);
         imgSprite.y = Math.floor(key / 25) * imgSprite.height * 1.05;
         imgSprite.interactive = true;
 
-        imgSprite.on("mouseover", () => {
-          imgSprite.width = imgSprite.width * 1.2;
-          imgSprite.height = imgSprite.height * 1.2;
-          imgSprite.zIndex += 100;
-          SpeakText(caption);
-          typeText(caption);
-        });
+        // imgSprite.on("mouseover", () => {
+        //   imgSprite.width = imgSprite.width * 1.2;
+        //   imgSprite.height = imgSprite.height * 1.2;
+        //   imgSprite.zIndex += 100;
+        //   SpeakText(caption);
+        //   typeText(caption);
+        // });
 
-        imgSprite.on("mouseout", () => {
-          imgSprite.width = imgSprite.width / 1.2;
-          imgSprite.height = imgSprite.height / 1.2;
-          imgSprite.zIndex -= 100;
-          speechSynthesis.cancel();
-          clearText();
-        });
+        // imgSprite.on("mouseout", () => {
+        //   imgSprite.width = imgSprite.width / 1.2;
+        //   imgSprite.height = imgSprite.height / 1.2;
+        //   imgSprite.zIndex -= 100;
+        //   speechSynthesis.cancel();
+        //   clearText();
+        // });
         viewport.addChild(imgSprite);
+        imgSprites.push(imgSprite);
       }
     });
   }
 
   // clearIntervalAsync();
-  // const runCaptionReader = setIntervalAsyncD(() => {
-  //   let index = Math.floor(Math.random() * json.length);
-  //   let currentCaption = json[index].caption;
-  //   let currentImage = json[index].filename;
-  //   console.log(currentImage, currentCaption);
-  //   SpeakText(currentCaption);
-  //   typeText(currentCaption);
-  //   let xPos = viewport.worldWidth * Math.random();
-  //   let yPos = viewport.worldHeight * Math.random();
-  //   viewport.snap(xPos, yPos);
-  // }, 10000);
+  setIntervalAsyncD(() => {
+    let index = Math.floor(Math.random() * json.length);
+    let currentCaption = json[index].caption;
+    // let currentFile = json[index].filename;
+    let currentImgSprite = imgSprites[index];
 
+    console.log(currentCaption);
+
+    currentImgSprite.width *= 1.2;
+    currentImgSprite.height *= 1.2;
+    currentImgSprite.zIndex += 99999999;
+
+    // SpeakText(currentCaption);
+    typeText(currentCaption);
+    viewport.snap(currentImgSprite.x, currentImgSprite.y);
+  }, 7000);
   function init() {
     initDimensions();
     initUniforms();
