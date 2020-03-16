@@ -6,9 +6,13 @@ const json = require("./filenames_captions.json");
 import SpeakText from "./SpeakText.js";
 import { typeText, clearText } from "./TextIsTyping.js";
 
+import { dynamic, fixed, legacy, clearIntervalAsync } from "set-interval-async";
+const { setIntervalAsync: setIntervalAsyncD } = dynamic;
+const { setIntervalAsync: setIntervalAsyncF } = fixed;
+const { setIntervalAsync: setIntervalAsyncL } = legacy;
+
 document.body.setAttribute("style", "margin:0; padding:0;");
 document.body.style.background = "#430354";
-// document.body.style.backgroundColor = "transparent";
 
 let textDiv = document.createElement("div");
 textDiv.id = "textDiv";
@@ -211,14 +215,18 @@ document.body.appendChild(view);
     });
   }
 
-  setInterval(() => {
-    let index = Math.floor(Math.random() * json.length);
-    let currentCaption = json[index].caption;
-    let currentImage = json[index].filename;
-    console.log(currentImage, currentCaption);
-    SpeakText(currentCaption);
-    typeText(currentCaption);
-  }, 7000);
+  // clearIntervalAsync();
+  // const runCaptionReader = setIntervalAsyncD(() => {
+  //   let index = Math.floor(Math.random() * json.length);
+  //   let currentCaption = json[index].caption;
+  //   let currentImage = json[index].filename;
+  //   console.log(currentImage, currentCaption);
+  //   SpeakText(currentCaption);
+  //   typeText(currentCaption);
+  //   let xPos = viewport.worldWidth * Math.random();
+  //   let yPos = viewport.worldHeight * Math.random();
+  //   viewport.snap(xPos, yPos);
+  // }, 10000);
 
   function init() {
     initDimensions();
