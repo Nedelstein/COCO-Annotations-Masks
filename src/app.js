@@ -1,6 +1,7 @@
 import "./styles.css";
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
+import { BulgePinchFilter } from "@pixi/filter-bulge-pinch";
 const json = require("./filenames_captions.json");
 
 import SpeakText from "./SpeakText.js";
@@ -36,7 +37,7 @@ document.body.appendChild(view);
 
   // store loaded resources here
   const resources = PIXI.Loader.shared.resources;
-  let viewport;
+  let viewport, container, bulge;
 
   // set dimensions
   function initDimensions() {
@@ -59,7 +60,7 @@ document.body.appendChild(view);
     app = new PIXI.Application({ view });
 
     // resize the renderer view in css pixels to allow for resolutions other than 1
-    // app.renderer.autoDensity = true;
+    app.renderer.autoDensity = true;
 
     app.renderer.resize(width, height);
 
@@ -68,8 +69,6 @@ document.body.appendChild(view);
       screenHeight: window.innerHeight,
       worldWidth: 2000,
       worldHeight: 2000,
-      // worldWidth: json.length,
-      // worldHeight: json.length,
       interaction: app.renderer.plugins.interaction
     });
     viewport.moveCorner(0, 0);
@@ -82,7 +81,6 @@ document.body.appendChild(view);
       // .clamp({ direction: "all" })
       .wheel();
     // .decelerate();
-
     // viewport.moveCorner(100, -100);
 
     // load resources and then init the app
@@ -94,7 +92,19 @@ document.body.appendChild(view);
     //   uniforms
     // );
     // app.stage.filters = [stageFilter];
-    app.stage.addChild(viewport);
+
+    // Initialize a Container element
+    container = new PIXI.Container();
+    container.interactive = true;
+    container.addChild(viewport);
+    app.stage.addChild(container);
+
+    bulge = new BulgePinchFilter();
+    // bulge.center.x = 0.5;
+    // bulge.center.y = 0.5;
+    bulge.radius = 200;
+    bulge.strength = 0.5;
+    app.stage.filters = [bulge];
   }
 
   // load resources and then init the app
@@ -165,13 +175,6 @@ document.body.appendChild(view);
     }
   }
 
-  // let container;
-  // // Initialize a Container element for solid rectangles and images
-  // function initContainer() {
-  //   container = new PIXI.Container();
-  //   app.stage.addChild(container);
-  // }
-
   let imgSprites = [];
   function loadImgs() {
     let displayImg;
@@ -220,19 +223,23 @@ document.body.appendChild(view);
   setIntervalAsyncD(() => {
     let index = Math.floor(Math.random() * json.length);
     let currentCaption = json[index].caption;
+    console.log(currentCaption);
     // let currentFile = json[index].filename;
     let currentImgSprite = imgSprites[index];
 
-    console.log(currentCaption);
-
-    currentImgSprite.width *= 1.2;
-    currentImgSprite.height *= 1.2;
-    currentImgSprite.zIndex += 99999999;
+    // currentImgSprite.width += 0.2;
+    // currentImgSprite.height += 0.2;
+    // currentImgSprite.zIndex += 99999999;
 
     // SpeakText(currentCaption);
     typeText(currentCaption);
+
+    bulge.center.x = currentImgSprite.x / (viewport.worldWidth - 100);
+    bulge.center.y = currentImgSprite.y / (viewport.worldHeight - 50);
+    console.log(bulge.center.x, bulge.center.y);
     viewport.snap(currentImgSprite.x, currentImgSprite.y);
   }, 7000);
+
   function init() {
     initDimensions();
     initUniforms();
