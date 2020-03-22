@@ -1,7 +1,7 @@
 import "./styles.css";
 import * as PIXI from "pixi.js";
 import { Viewport } from "pixi-viewport";
-import { BulgePinchFilter } from "@pixi/filter-bulge-pinch";
+import { BulgePinchFilter, RGBSplitFilter } from "pixi-filters";
 const json = require("./filenames_captions.json");
 
 import SpeakText from "./SpeakText.js";
@@ -37,7 +37,8 @@ document.body.appendChild(view);
 
   // store loaded resources here
   const resources = PIXI.Loader.shared.resources;
-  let viewport, container, bulge;
+  let viewport, container;
+  let bulge, splitFilter;
 
   // set dimensions
   function initDimensions() {
@@ -77,9 +78,10 @@ document.body.appendChild(view);
     viewport
       .drag()
       .pinch()
-      // .bounce();
-      // .clamp({ direction: "all" })
-      .wheel();
+      .mouseEdges({ radius: "350", speed: "7" });
+    // .bounce();
+    // .clamp({ direction: "all" });
+    // .wheel();
     // .decelerate();
     // viewport.moveCorner(100, -100);
 
@@ -98,13 +100,30 @@ document.body.appendChild(view);
     container.interactive = true;
     container.addChild(viewport);
     app.stage.addChild(container);
+    app.stage.interactive = true;
 
     bulge = new BulgePinchFilter();
-    // bulge.center.x = 0.5;
-    // bulge.center.y = 0.5;
+    bulge.center.x = 0.5;
+    bulge.center.y = 0.5;
     bulge.radius = 200;
-    bulge.strength = 0.5;
-    app.stage.filters = [bulge];
+    bulge.strength = 1;
+
+    app.stage.on("pointermove", moveBulge);
+    function moveBulge(e) {
+      let mousePos = e.data.global;
+      //normalize mouse positions for bulge filter
+      bulge.center.x = mousePos.x / app.renderer.width;
+      bulge.center.y = mousePos.y / app.renderer.height;
+    }
+
+    splitFilter = new RGBSplitFilter();
+    splitFilter.enabled = false;
+    splitFilter.red.x = -10;
+    splitFilter.red.y = 0;
+    splitFilter.green.x = -3;
+    splitFilter.green.y = 0;
+
+    app.stage.filters = [bulge, splitFilter];
   }
 
   // load resources and then init the app
@@ -187,6 +206,7 @@ document.body.appendChild(view);
       json[i].image = displayImg;
     }
     app.loader.load((loader, resources) => {
+      splitFilter.enabled = false;
       for (let key in json) {
         const caption = json[key].caption;
         const imgSprite = new PIXI.Sprite(resources[caption].texture);
@@ -198,21 +218,15 @@ document.body.appendChild(view);
         imgSprite.y = Math.floor(key / 25) * imgSprite.height * 1.05;
         imgSprite.interactive = true;
 
-        // imgSprite.on("mouseover", () => {
-        //   imgSprite.width = imgSprite.width * 1.2;
-        //   imgSprite.height = imgSprite.height * 1.2;
-        //   imgSprite.zIndex += 100;
-        //   SpeakText(caption);
-        //   typeText(caption);
-        // });
+        imgSprite.on("mouseover", () => {
+          // SpeakText(caption);
+          typeText(caption);
+        });
 
-        // imgSprite.on("mouseout", () => {
-        //   imgSprite.width = imgSprite.width / 1.2;
-        //   imgSprite.height = imgSprite.height / 1.2;
-        //   imgSprite.zIndex -= 100;
-        //   speechSynthesis.cancel();
-        //   clearText();
-        // });
+        imgSprite.on("mouseout", () => {
+          speechSynthesis.cancel();
+          clearText();
+        });
         viewport.addChild(imgSprite);
         imgSprites.push(imgSprite);
       }
@@ -220,25 +234,28 @@ document.body.appendChild(view);
   }
 
   // clearIntervalAsync();
-  setIntervalAsyncD(() => {
-    let index = Math.floor(Math.random() * json.length);
-    let currentCaption = json[index].caption;
-    console.log(currentCaption);
-    // let currentFile = json[index].filename;
-    let currentImgSprite = imgSprites[index];
+  // setIntervalAsyncD(() => {
+  //   let index = Math.floor(Math.random() * json.length);
+  //   let currentCaption = json[index].caption;
+  //   console.log(currentCaption);
+  //   // let currentFile = json[index].filename;
+  //   let currentImgSprite = imgSprites[index];
 
-    // currentImgSprite.width += 0.2;
-    // currentImgSprite.height += 0.2;
-    // currentImgSprite.zIndex += 99999999;
+  //   // currentImgSprite.width += 0.2;
+  //   // currentImgSprite.height += 0.2;
+  //   // currentImgSprite.zIndex += 99999999;
 
-    // SpeakText(currentCaption);
-    typeText(currentCaption);
+  //   SpeakText(currentCaption);
+  //   typeText(currentCaption);
 
-    bulge.center.x = currentImgSprite.x / (viewport.worldWidth - 100);
-    bulge.center.y = currentImgSprite.y / (viewport.worldHeight - 50);
-    console.log(bulge.center.x, bulge.center.y);
-    viewport.snap(currentImgSprite.x, currentImgSprite.y);
-  }, 7000);
+  //   bulge.center.x =
+  //     currentImgSprite.getGlobalPosition().x / (viewport.worldWidth + 100);
+  //   bulge.center.y =
+  //     currentImgSprite.getGlobalPosition().y / (viewport.worldHeight + 50);
+
+  //   console.log(bulge.center.x, bulge.center.y);
+  //   viewport.snap(currentImgSprite.x, currentImgSprite.y);
+  // }, 7000);
 
   function init() {
     initDimensions();
